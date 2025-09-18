@@ -1,0 +1,1 @@
+# pinceletas-admin-config-service
