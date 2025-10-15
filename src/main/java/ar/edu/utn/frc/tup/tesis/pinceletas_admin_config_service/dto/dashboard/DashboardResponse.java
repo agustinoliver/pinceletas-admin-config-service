@@ -1,0 +1,24 @@
+package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+/**
+ * DTO para el dashboard administrativo con múltiples métricas del sistema.
+ * Agrupa diferentes estadísticas para visualización en paneles de control.
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class DashboardResponse {
+
+    /** Estadísticas de usuarios del sistema. */
+    private UserStats userStats;
+
+    /** Métricas generales del sistema. */
+    private SystemMetrics systemMetrics;
+
+    /** Timestamp de generación del reporte. */
+    private String timestamp;
+}

@@ -1,0 +1,4 @@
+package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto;
+
+public class SystemMetrics {
+}

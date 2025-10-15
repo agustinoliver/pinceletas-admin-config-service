@@ -1,0 +1,14 @@
+package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+/**
+ * Configuración de CORS (Cross-Origin Resource Sharing) para la aplicación.
+ * Permite que clientes frontend desde diferentes orígenes accedan a la API.
+ */
+@Configuration
+public class WebConfig {
+}
