@@ -1,6 +1,8 @@
 package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.services;
 
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.DashboardResponse;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.SystemMetrics;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.UserStats;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.reports.UserStatsReport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
-import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.UserStats;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -79,7 +80,7 @@ public class DashboardService {
 
         UserStatsReport userStats = getUserStats();
 
-        // Procesar estadísticas de usuarios
+        // Crear las clases internas usando la sintaxis correcta
         DashboardResponse.UserStats userStatsData = new DashboardResponse.UserStats();
         userStatsData.setTotalUsers(userStats.getTotal());
         userStatsData.setActiveUsers(userStats.getActive());
@@ -90,7 +91,7 @@ public class DashboardService {
                 (double) userStats.getActive() / userStats.getTotal() * 100 : 0;
         userStatsData.setActivePercentage(Math.round(activePercentage * 100.0) / 100.0);
 
-        // Obtener métricas del sistema
+        // Crear métricas del sistema
         DashboardResponse.SystemMetrics systemMetrics = new DashboardResponse.SystemMetrics();
         systemMetrics.setServiceStatus(checkUserServiceStatus());
         systemMetrics.setTotalRequests(calculateTotalRequests());
@@ -98,7 +99,11 @@ public class DashboardService {
 
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-        DashboardResponse dashboard = new DashboardResponse(userStatsData, systemMetrics, timestamp);
+        // Crear y retornar el dashboard response
+        DashboardResponse dashboard = new DashboardResponse();
+        dashboard.setUserStats(userStatsData);
+        dashboard.setSystemMetrics(systemMetrics);
+        dashboard.setTimestamp(timestamp);
 
         log.info("Dashboard generado exitosamente - Timestamp: {}", timestamp);
         log.debug("Dashboard details - Total users: {}, Active: {}, Inactive: {}",

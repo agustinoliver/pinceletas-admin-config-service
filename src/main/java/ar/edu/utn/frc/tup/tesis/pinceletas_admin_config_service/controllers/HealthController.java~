@@ -1,0 +1,13 @@
+package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.controllers;
+
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.common.MessageResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Controlador REST para verificar el estado de salud del servicio administrativo.
+ */
+@RestController
+public class HealthController {
+}

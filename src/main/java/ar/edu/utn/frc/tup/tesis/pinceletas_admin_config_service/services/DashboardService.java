@@ -1,6 +1,8 @@
 package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.services;
 
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.DashboardResponse;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.SystemMetrics;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.UserStats;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.reports.UserStatsReport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
-import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.UserStats;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,7 +39,7 @@ public class DashboardService {
      * @return UserStatsReport con las estadísticas de usuarios.
      */
     @Cacheable(value = "userStats", unless = "#result == null")
-    public UserStatsReport getUserStats() {
+    public UserStatsReport getUserStatsFromAuthService() {
         log.info("Obteniendo estadísticas de usuarios desde: {}{}", userAuthServiceUrl, userStatsPath);
 
         String url = userAuthServiceUrl + userStatsPath;
@@ -77,21 +78,21 @@ public class DashboardService {
     public DashboardResponse getDashboard() {
         log.info("Generando dashboard administrativo completo");
 
-        UserStatsReport userStats = getUserStats();
+        UserStatsReport userStatsReport = getUserStatsFromAuthService();
 
-        // Crear las clases internas usando la sintaxis correcta
-        DashboardResponse.UserStats userStatsData = new DashboardResponse.UserStats();
-        userStatsData.setTotalUsers(userStats.getTotal());
-        userStatsData.setActiveUsers(userStats.getActive());
-        userStatsData.setInactiveUsers(userStats.getInactive());
+        // Crear estadísticas de usuarios para el dashboard
+        UserStats userStats = new UserStats();
+        userStats.setTotalUsers(userStatsReport.getTotal());
+        userStats.setActiveUsers(userStatsReport.getActive());
+        userStats.setInactiveUsers(userStatsReport.getInactive());
 
         // Calcular porcentaje de usuarios activos
-        double activePercentage = userStats.getTotal() > 0 ?
-                (double) userStats.getActive() / userStats.getTotal() * 100 : 0;
-        userStatsData.setActivePercentage(Math.round(activePercentage * 100.0) / 100.0);
+        double activePercentage = userStatsReport.getTotal() > 0 ?
+                (double) userStatsReport.getActive() / userStatsReport.getTotal() * 100 : 0;
+        userStats.setActivePercentage(Math.round(activePercentage * 100.0) / 100.0);
 
         // Crear métricas del sistema
-        DashboardResponse.SystemMetrics systemMetrics = new DashboardResponse.SystemMetrics();
+        SystemMetrics systemMetrics = new SystemMetrics();
         systemMetrics.setServiceStatus(checkUserServiceStatus());
         systemMetrics.setTotalRequests(calculateTotalRequests());
         systemMetrics.setUptimePercentage(calculateUptimePercentage());
@@ -100,13 +101,13 @@ public class DashboardService {
 
         // Crear y retornar el dashboard response
         DashboardResponse dashboard = new DashboardResponse();
-        dashboard.setUserStats(userStatsData);
+        dashboard.setUserStats(userStats);
         dashboard.setSystemMetrics(systemMetrics);
         dashboard.setTimestamp(timestamp);
 
         log.info("Dashboard generado exitosamente - Timestamp: {}", timestamp);
         log.debug("Dashboard details - Total users: {}, Active: {}, Inactive: {}",
-                userStatsData.getTotalUsers(), userStatsData.getActiveUsers(), userStatsData.getInactiveUsers());
+                userStats.getTotalUsers(), userStats.getActiveUsers(), userStats.getInactiveUsers());
 
         return dashboard;
     }
@@ -129,23 +130,19 @@ public class DashboardService {
 
     /**
      * Calcula el total de requests simulados para métricas del sistema.
-     * En una implementación real, esto vendría de logs o métricas reales.
      *
      * @return Número total de requests simulados.
      */
     private long calculateTotalRequests() {
-        // Simulación - en producción esto vendría de métricas reales
         return 1247L;
     }
 
     /**
      * Calcula el porcentaje de uptime del sistema.
-     * En una implementación real, esto vendría de métricas de monitoreo.
      *
      * @return Porcentaje de uptime simulado.
      */
     private double calculateUptimePercentage() {
-        // Simulación - en producción esto vendría de métricas reales
         return 99.95;
     }
 }
