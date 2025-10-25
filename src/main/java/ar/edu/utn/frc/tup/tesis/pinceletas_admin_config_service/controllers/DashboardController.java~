@@ -1,6 +1,6 @@
 package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.controllers;
 
-import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.user.DashboardResponse;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.DashboardResponse;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.services.DashboardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

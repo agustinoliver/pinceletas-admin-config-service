@@ -1,4 +1,4 @@
-package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard;
+package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

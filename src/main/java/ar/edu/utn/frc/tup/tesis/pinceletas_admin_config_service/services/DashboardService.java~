@@ -1,13 +1,19 @@
 package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.services;
 
-import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.DashboardResponse;
-import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.SystemMetrics;
-import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.UserStats;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductStatsDto;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductsByCategoryDto;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.TopSellingProductDto;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.user.DashboardResponse;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.user.SystemMetrics;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.user.UserStats;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.reports.UserStatsReport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
@@ -15,6 +21,9 @@ import org.springframework.web.client.ResourceAccessException;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Servicio para gestión del dashboard administrativo.
@@ -33,67 +42,131 @@ public class DashboardService {
     @Value("${app.services.user-auth.reports-path:/api/reports/users/active-inactive}")
     private String userStatsPath;
 
-    /**
-     * Obtiene las estadísticas de usuarios desde el servicio de autenticación.
-     *
-     * @return UserStatsReport con las estadísticas de usuarios.
-     */
-    @Cacheable(value = "userStats", unless = "#result == null")
-    public UserStatsReport getUserStats() {
-        log.info("Obteniendo estadísticas de usuarios desde: {}{}", userAuthServiceUrl, userStatsPath);
+    @Value("${app.services.commerce.url:http://localhost:8080}")
+    private String commerceServiceUrl;
 
+    @Cacheable(value = "userStats", unless = "#result == null")
+    public UserStatsReport getUserStatsFromAuthService() {
+        log.info("Obteniendo estadísticas de usuarios desde: {}{}", userAuthServiceUrl, userStatsPath);
         String url = userAuthServiceUrl + userStatsPath;
 
         try {
             UserStatsReport report = restTemplate.getForObject(url, UserStatsReport.class);
-
             if (report != null) {
-                log.info("Estadísticas obtenidas exitosamente: {} activos, {} inactivos, {} total",
-                        report.getActive(), report.getInactive(), report.getTotal());
+                log.info("Estadísticas de usuarios obtenidas: {} activos, {} inactivos",
+                        report.getActive(), report.getInactive());
             } else {
                 log.warn("El servicio de autenticación retornó null");
                 report = new UserStatsReport(0, 0, 0);
             }
-
             return report;
-
-        } catch (HttpClientErrorException.NotFound e) {
-            log.error("Endpoint no encontrado en el servicio de autenticación: {}", url);
-            return new UserStatsReport(0, 0, 0);
-        } catch (ResourceAccessException e) {
-            log.error("Error de conexión con el servicio de autenticación: {}", e.getMessage());
-            return new UserStatsReport(0, 0, 0);
         } catch (Exception e) {
-            log.error("Error inesperado obteniendo estadísticas de usuarios: {}", e.getMessage());
+            log.error("Error obteniendo estadísticas de usuarios: {}", e.getMessage());
             return new UserStatsReport(0, 0, 0);
         }
     }
 
-    /**
-     * Genera el dashboard completo con todas las métricas del sistema.
-     *
-     * @return DashboardResponse con todas las métricas procesadas.
-     */
+    @Cacheable(value = "productGeneralStats", unless = "#result == null")
+    public ProductStatsDto getProductGeneralStats() {
+        log.info("Obteniendo estadísticas generales de productos");
+        String url = commerceServiceUrl + "/api/reports/products/general-stats";
+
+        try {
+            ResponseEntity<Map<String, Long>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<Map<String, Long>>() {}
+            );
+
+            if (response.getBody() != null) {
+                Map<String, Long> stats = response.getBody();
+                ProductStatsDto dto = new ProductStatsDto();
+                dto.setTotalProducts(stats.getOrDefault("totalProducts", 0L));
+                dto.setActiveProducts(stats.getOrDefault("activeProducts", 0L));
+                dto.setInactiveProducts(stats.getOrDefault("inactiveProducts", 0L));
+
+                log.info("Estadísticas de productos obtenidas: {} total, {} activos",
+                        dto.getTotalProducts(), dto.getActiveProducts());
+                return dto;
+            }
+        } catch (Exception e) {
+            log.error("Error obteniendo estadísticas de productos: {}", e.getMessage());
+        }
+        return new ProductStatsDto(0L, 0L, 0L);
+    }
+
+    @Cacheable(value = "productsByCategory", unless = "#result.isEmpty()")
+    public List<ProductsByCategoryDto> getProductsByCategory() {
+        log.info("Obteniendo productos por categoría");
+        String url = commerceServiceUrl + "/api/reports/products/by-category";
+
+        try {
+            ResponseEntity<List<ProductsByCategoryDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<ProductsByCategoryDto>>() {}
+            );
+
+            if (response.getBody() != null) {
+                List<ProductsByCategoryDto> products = response.getBody();
+                log.info("Productos por categoría obtenidos: {} categorías", products.size());
+                return products;
+            }
+        } catch (Exception e) {
+            log.error("Error obteniendo productos por categoría: {}", e.getMessage());
+        }
+        return new ArrayList<>();
+    }
+
+    @Cacheable(value = "topSellingProducts", unless = "#result.isEmpty()")
+    public List<TopSellingProductDto> getTopSellingProducts(Integer limit) {
+        log.info("Obteniendo top {} productos más vendidos", limit);
+        String url = commerceServiceUrl + "/api/reports/products/top-selling?limit=" + limit;
+
+        try {
+            ResponseEntity<List<TopSellingProductDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<TopSellingProductDto>>() {}
+            );
+
+            if (response.getBody() != null) {
+                List<TopSellingProductDto> products = response.getBody();
+                log.info("Top productos más vendidos obtenidos: {} productos", products.size());
+                return products;
+            }
+        } catch (Exception e) {
+            log.error("Error obteniendo productos más vendidos: {}", e.getMessage());
+        }
+        return new ArrayList<>();
+    }
+
     @Cacheable(value = "dashboard", unless = "#result == null")
     public DashboardResponse getDashboard() {
         log.info("Generando dashboard administrativo completo");
 
-        UserStatsReport userStats = getUserStats();
+        // Obtener datos de usuarios
+        UserStatsReport userStatsReport = getUserStatsFromAuthService();
+        UserStats userStats = new UserStats();
+        userStats.setTotalUsers(userStatsReport.getTotal());
+        userStats.setActiveUsers(userStatsReport.getActive());
+        userStats.setInactiveUsers(userStatsReport.getInactive());
 
-        // Crear las clases internas usando la sintaxis correcta
-        DashboardResponse.UserStats userStatsData = new DashboardResponse.UserStats();
-        userStatsData.setTotalUsers(userStats.getTotal());
-        userStatsData.setActiveUsers(userStats.getActive());
-        userStatsData.setInactiveUsers(userStats.getInactive());
+        double activePercentage = userStatsReport.getTotal() > 0 ?
+                (double) userStatsReport.getActive() / userStatsReport.getTotal() * 100 : 0;
+        userStats.setActivePercentage(Math.round(activePercentage * 100.0) / 100.0);
 
-        // Calcular porcentaje de usuarios activos
-        double activePercentage = userStats.getTotal() > 0 ?
-                (double) userStats.getActive() / userStats.getTotal() * 100 : 0;
-        userStatsData.setActivePercentage(Math.round(activePercentage * 100.0) / 100.0);
+        // Obtener datos de productos
+        ProductStatsDto productStats = getProductGeneralStats();
+        List<ProductsByCategoryDto> productsByCategory = getProductsByCategory();
+        List<TopSellingProductDto> topSellingProducts = getTopSellingProducts(5);
 
         // Crear métricas del sistema
-        DashboardResponse.SystemMetrics systemMetrics = new DashboardResponse.SystemMetrics();
-        systemMetrics.setServiceStatus(checkUserServiceStatus());
+        SystemMetrics systemMetrics = new SystemMetrics();
+        systemMetrics.setServiceStatus(checkServicesStatus());
         systemMetrics.setTotalRequests(calculateTotalRequests());
         systemMetrics.setUptimePercentage(calculateUptimePercentage());
 
@@ -101,52 +174,41 @@ public class DashboardService {
 
         // Crear y retornar el dashboard response
         DashboardResponse dashboard = new DashboardResponse();
-        dashboard.setUserStats(userStatsData);
+        dashboard.setUserStats(userStats);
         dashboard.setSystemMetrics(systemMetrics);
+        dashboard.setProductStats(productStats);
+        dashboard.setProductsByCategory(productsByCategory);
+        dashboard.setTopSellingProducts(topSellingProducts);
         dashboard.setTimestamp(timestamp);
 
         log.info("Dashboard generado exitosamente - Timestamp: {}", timestamp);
-        log.debug("Dashboard details - Total users: {}, Active: {}, Inactive: {}",
-                userStatsData.getTotalUsers(), userStatsData.getActiveUsers(), userStatsData.getInactiveUsers());
-
         return dashboard;
     }
 
-    /**
-     * Verifica el estado del servicio de usuarios.
-     *
-     * @return String con el estado del servicio.
-     */
-    private String checkUserServiceStatus() {
+    private String checkServicesStatus() {
+        boolean userServiceUp = checkServiceStatus(userAuthServiceUrl + "/health");
+        boolean commerceServiceUp = checkServiceStatus(commerceServiceUrl + "/health");
+
+        if (userServiceUp && commerceServiceUp) return "OPERATIONAL";
+        if (userServiceUp || commerceServiceUp) return "DEGRADED";
+        return "DOWN";
+    }
+
+    private boolean checkServiceStatus(String healthUrl) {
         try {
-            String healthUrl = userAuthServiceUrl + "/health";
             restTemplate.getForObject(healthUrl, String.class);
-            return "OPERATIONAL";
+            return true;
         } catch (Exception e) {
-            log.warn("Servicio de autenticación no disponible: {}", e.getMessage());
-            return "DEGRADED";
+            log.warn("Servicio no disponible: {}", healthUrl);
+            return false;
         }
     }
 
-    /**
-     * Calcula el total de requests simulados para métricas del sistema.
-     * En una implementación real, esto vendría de logs o métricas reales.
-     *
-     * @return Número total de requests simulados.
-     */
     private long calculateTotalRequests() {
-        // Simulación - en producción esto vendría de métricas reales
         return 1247L;
     }
 
-    /**
-     * Calcula el porcentaje de uptime del sistema.
-     * En una implementación real, esto vendría de métricas de monitoreo.
-     *
-     * @return Porcentaje de uptime simulado.
-     */
     private double calculateUptimePercentage() {
-        // Simulación - en producción esto vendría de métricas reales
         return 99.95;
     }
 }

@@ -12,7 +12,7 @@ springdoc.api-docs.enabled=true
 springdoc.cache.disabled=true
 
 # Logs para debugging
-logging.level.org.springframework.security=INFO
+logging.level.org.springframework.security=DEBUG
 logging.level.org.springdoc=INFO
 logging.level.ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service=DEBUG
 
@@ -31,5 +31,5 @@ app.services.user-auth.reports-path=/api/reports/users/active-inactive
 app.dashboard.cache.enabled=true
 app.dashboard.cache.ttl=300000
 
-# Basic Auth Configuration (para desarrollo)
-app.security.basic.auth.enabled=true
+# JWT Configuration - IMPORTANTE: Mismo secret que user-auth-service
+app.jwt.secret=supersecretkeysupersecretkeysupersecretkey
