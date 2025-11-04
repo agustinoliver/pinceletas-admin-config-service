@@ -1,6 +1,8 @@
 package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.services;
 
 
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.OrdersByDateDto;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.OrdersByStatusDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductStatsDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductsByCategoryDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.TopSellingProductDto;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -163,6 +166,10 @@ public class DashboardService {
         List<ProductsByCategoryDto> productsByCategory = getProductsByCategory();
         List<TopSellingProductDto> topSellingProducts = getTopSellingProducts(5);
 
+        // 🆕 Obtener datos de pedidos
+        List<OrdersByDateDto> ordersByDate = getOrdersByDate(null, null);
+        List<OrdersByStatusDto> ordersByStatus = getOrdersByStatus();
+
         // Crear métricas del sistema
         SystemMetrics systemMetrics = new SystemMetrics();
         systemMetrics.setServiceStatus(checkServicesStatus());
@@ -178,11 +185,17 @@ public class DashboardService {
         dashboard.setProductStats(productStats);
         dashboard.setProductsByCategory(productsByCategory);
         dashboard.setTopSellingProducts(topSellingProducts);
+
+        // 🆕 Agregar datos de pedidos
+        dashboard.setOrdersByDate(ordersByDate);
+        dashboard.setOrdersByStatus(ordersByStatus);
+
         dashboard.setTimestamp(timestamp);
 
         log.info("Dashboard generado exitosamente - Timestamp: {}", timestamp);
         return dashboard;
     }
+
 
     private String checkServicesStatus() {
         boolean userServiceUp = checkServiceStatus(userAuthServiceUrl + "/health");
@@ -210,4 +223,74 @@ public class DashboardService {
     private double calculateUptimePercentage() {
         return 99.95;
     }
+
+    /**
+     * Obtiene el reporte de pedidos por fecha del commerce service.
+     * Por defecto, últimos 30 días.
+     */
+    @Cacheable(value = "ordersByDate", unless = "#result.isEmpty()")
+    public List<OrdersByDateDto> getOrdersByDate(LocalDate startDate, LocalDate endDate) {
+        log.info("Obteniendo pedidos por fecha");
+
+        StringBuilder url = new StringBuilder(commerceServiceUrl + "/api/reports/orders/by-date");
+
+        // Agregar parámetros de fechas si existen
+        List<String> params = new ArrayList<>();
+        if (startDate != null) {
+            params.add("startDate=" + startDate.toString());
+        }
+        if (endDate != null) {
+            params.add("endDate=" + endDate.toString());
+        }
+
+        if (!params.isEmpty()) {
+            url.append("?").append(String.join("&", params));
+        }
+
+        try {
+            ResponseEntity<List<OrdersByDateDto>> response = restTemplate.exchange(
+                    url.toString(),
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<OrdersByDateDto>>() {}
+            );
+
+            if (response.getBody() != null) {
+                List<OrdersByDateDto> orders = response.getBody();
+                log.info("Pedidos por fecha obtenidos: {} fechas", orders.size());
+                return orders;
+            }
+        } catch (Exception e) {
+            log.error("Error obteniendo pedidos por fecha: {}", e.getMessage());
+        }
+        return new ArrayList<>();
+    }
+
+    /**
+     * Obtiene el reporte de pedidos por estado del commerce service.
+     */
+    @Cacheable(value = "ordersByStatus", unless = "#result.isEmpty()")
+    public List<OrdersByStatusDto> getOrdersByStatus() {
+        log.info("Obteniendo pedidos por estado");
+        String url = commerceServiceUrl + "/api/reports/orders/by-status";
+
+        try {
+            ResponseEntity<List<OrdersByStatusDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<OrdersByStatusDto>>() {}
+            );
+
+            if (response.getBody() != null) {
+                List<OrdersByStatusDto> orders = response.getBody();
+                log.info("Pedidos por estado obtenidos: {} estados", orders.size());
+                return orders;
+            }
+        } catch (Exception e) {
+            log.error("Error obteniendo pedidos por estado: {}", e.getMessage());
+        }
+        return new ArrayList<>();
+    }
+
 }

@@ -1,0 +1,33 @@
+package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.services;
+
+
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.entities.TiendaEntity;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.repositories.TiendaRepository;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@AllArgsConstructor
+public class TiendaService {
+
+    private final TiendaRepository tiendaRepository;
+
+    public List<TiendaEntity> listar() {
+        return tiendaRepository.findAll();
+    }
+
+    public Optional<TiendaEntity> buscarPorId(Long id) {
+        return tiendaRepository.findById(id);
+    }
+
+    public TiendaEntity guardar(TiendaEntity tienda) {
+        return tiendaRepository.save(tienda);
+    }
+
+    public void eliminar(Long id) {
+        tiendaRepository.deleteById(id);
+    }
+}

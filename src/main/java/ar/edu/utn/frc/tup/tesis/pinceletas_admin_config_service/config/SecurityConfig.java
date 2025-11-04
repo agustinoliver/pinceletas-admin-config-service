@@ -39,6 +39,10 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**",
                                 "/webjars/**", "/api-docs/**", "/swagger-ui.html").permitAll()
 
+                        // 🆕 NUEVO: Permitir acceso público a políticas y tiendas
+                        .requestMatchers("/politicas/**").permitAll()
+                        .requestMatchers("/tiendas/**").permitAll()
+
                         // Endpoints de dashboard - requieren autenticación JWT y rol ADMIN
                         .requestMatchers("/api/admin/dashboard/**").hasRole("ADMIN")
 

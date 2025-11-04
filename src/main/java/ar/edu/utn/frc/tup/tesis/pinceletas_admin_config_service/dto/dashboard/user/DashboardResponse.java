@@ -1,5 +1,7 @@
 package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.user;
 
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.OrdersByDateDto;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.OrdersByStatusDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductStatsDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductsByCategoryDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.TopSellingProductDto;
@@ -27,7 +29,7 @@ public class DashboardResponse {
     /** Timestamp de generación del reporte. */
     private String timestamp;
 
-    // 🆕 NUEVOS CAMPOS PARA COMMERCE
+    // ========== COMMERCE - PRODUCTOS ==========
 
     /** Estadísticas generales de productos */
     private ProductStatsDto productStats;
@@ -37,4 +39,12 @@ public class DashboardResponse {
 
     /** Lista de productos más vendidos (top 5 por defecto) */
     private List<TopSellingProductDto> topSellingProducts;
+
+    // 🆕 ========== COMMERCE - PEDIDOS ==========
+
+    /** Lista de pedidos agrupados por fecha (últimos 30 días) */
+    private List<OrdersByDateDto> ordersByDate;
+
+    /** Lista de pedidos agrupados por estado */
+    private List<OrdersByStatusDto> ordersByStatus;
 }

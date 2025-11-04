@@ -1,0 +1,14 @@
+package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.entities;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "tiendas")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class PoliticasEntity {
+}
