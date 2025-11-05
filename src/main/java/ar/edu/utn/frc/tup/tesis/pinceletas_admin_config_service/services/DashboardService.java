@@ -3,6 +3,7 @@ package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.services;
 
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.OrdersByDateDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.OrdersByStatusDto;
+import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.PurchasesByUserDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductStatsDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductsByCategoryDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.TopSellingProductDto;
@@ -170,6 +171,12 @@ public class DashboardService {
         List<OrdersByDateDto> ordersByDate = getOrdersByDate(null, null);
         List<OrdersByStatusDto> ordersByStatus = getOrdersByStatus();
 
+        // 🆕 Obtener datos de compras por usuario (top 10 compradores)
+        List<PurchasesByUserDto> purchasesByUser = getPurchasesByUser(null, null);
+        if (purchasesByUser.size() > 10) {
+            purchasesByUser = purchasesByUser.subList(0, 10);
+        }
+
         // Crear métricas del sistema
         SystemMetrics systemMetrics = new SystemMetrics();
         systemMetrics.setServiceStatus(checkServicesStatus());
@@ -189,6 +196,9 @@ public class DashboardService {
         // 🆕 Agregar datos de pedidos
         dashboard.setOrdersByDate(ordersByDate);
         dashboard.setOrdersByStatus(ordersByStatus);
+
+        // 🆕 Agregar datos de compras por usuario
+        dashboard.setPurchasesByUser(purchasesByUser);
 
         dashboard.setTimestamp(timestamp);
 
@@ -293,4 +303,49 @@ public class DashboardService {
         return new ArrayList<>();
     }
 
+    /**
+     * Obtiene el reporte de compras por usuario del commerce service.
+     * Permite filtrar por rango de fechas.
+     *
+     * @param startDate Fecha inicial del filtro (opcional).
+     * @param endDate Fecha final del filtro (opcional).
+     * @return Lista de PurchasesByUserDto con estadísticas por usuario.
+     */
+    @Cacheable(value = "purchasesByUser", key = "#startDate + '-' + #endDate", unless = "#result.isEmpty()")
+    public List<PurchasesByUserDto> getPurchasesByUser(LocalDate startDate, LocalDate endDate) {
+        log.info("Obteniendo compras por usuario desde commerce service");
+
+        StringBuilder url = new StringBuilder(commerceServiceUrl + "/api/reports/purchases/by-user");
+
+        // Agregar parámetros de fechas si existen
+        List<String> params = new ArrayList<>();
+        if (startDate != null) {
+            params.add("startDate=" + startDate.toString());
+        }
+        if (endDate != null) {
+            params.add("endDate=" + endDate.toString());
+        }
+
+        if (!params.isEmpty()) {
+            url.append("?").append(String.join("&", params));
+        }
+
+        try {
+            ResponseEntity<List<PurchasesByUserDto>> response = restTemplate.exchange(
+                    url.toString(),
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<PurchasesByUserDto>>() {}
+            );
+
+            if (response.getBody() != null) {
+                List<PurchasesByUserDto> purchases = response.getBody();
+                log.info("Compras por usuario obtenidas: {} usuarios", purchases.size());
+                return purchases;
+            }
+        } catch (Exception e) {
+            log.error("Error obteniendo compras por usuario: {}", e.getMessage());
+        }
+        return new ArrayList<>();
+    }
 }

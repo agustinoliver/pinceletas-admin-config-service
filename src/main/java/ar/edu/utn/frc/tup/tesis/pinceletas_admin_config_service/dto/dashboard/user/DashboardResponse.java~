@@ -2,7 +2,6 @@ package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.u
 
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.OrdersByDateDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.OrdersByStatusDto;
-import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order.PurchasesByUserDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductStatsDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.ProductsByCategoryDto;
 import ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.product.TopSellingProductDto;
@@ -48,7 +47,4 @@ public class DashboardResponse {
 
     /** Lista de pedidos agrupados por estado */
     private List<OrdersByStatusDto> ordersByStatus;
-
-    /** Lista de compras agrupadas por usuario (top compradores) */
-    private List<PurchasesByUserDto> purchasesByUser;
 }

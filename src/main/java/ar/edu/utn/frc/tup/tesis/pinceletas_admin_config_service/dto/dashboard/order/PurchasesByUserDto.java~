@@ -1,0 +1,42 @@
+package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.dto.dashboard.order;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+/**
+ * DTO para el reporte de compras por usuario en el admin service.
+ * Espejo del DTO del commerce service para desacoplar servicios.
+ */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class PurchasesByUserDto {
+
+    /** ID del usuario en el sistema */
+    private Long userId;
+
+    /** Nombre completo del usuario */
+    private String userName;
+
+    /** Email del usuario */
+    private String userEmail;
+
+    /** Cantidad total de pedidos realizados */
+    private Long totalPurchases;
+
+    /** Monto total gastado */
+    private BigDecimal totalAmountSpent;
+
+    /** Monto promedio por pedido */
+    private BigDecimal averageOrderAmount;
+
+    /** Fecha de la última compra */
+    private LocalDateTime lastPurchaseDate;
+
+    /** Estado del último pedido */
+    private String lastOrderStatus;
+}
