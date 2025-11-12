@@ -1,4 +1,0 @@
-package ar.edu.utn.frc.tup.tesis.pinceletas_admin_config_service.repositories;
-
-public class PoliticasRepository {
-}

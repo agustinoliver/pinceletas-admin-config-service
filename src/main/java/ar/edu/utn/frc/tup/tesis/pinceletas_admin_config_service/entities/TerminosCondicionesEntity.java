@@ -6,18 +6,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "tiendas")
+@Table(name = "terminos_condiciones")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PoliticasEntity {
+public class TerminosCondicionesEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "politica_devolucion", columnDefinition = "TEXT")
-    private String politicaDevolucion;
+    @Column(name = "terminos_servicio", columnDefinition = "TEXT")
+    private String terminosServicio;
 
     @Column(name = "politica_privacidad", columnDefinition = "TEXT")
     private String politicaPrivacidad;
