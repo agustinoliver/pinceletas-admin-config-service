@@ -39,13 +39,13 @@ public class DashboardService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${app.services.user-auth.url:http://localhost:8081}")
+    @Value("${app.services.user-auth.url:https://pinceletas-user-auth.onrender.com}")
     private String userAuthServiceUrl;
 
     @Value("${app.services.user-auth.reports-path:/api/reports/users/active-inactive}")
     private String userStatsPath;
 
-    @Value("${app.services.commerce.url:http://localhost:8080}")
+    @Value("${app.services.commerce.url:https://pinceletas-commerce-service.onrender.com}")
     private String commerceServiceUrl;
 
     @Cacheable(value = "userStats", unless = "#result == null")
